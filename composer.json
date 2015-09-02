@@ -1,0 +1,23 @@
+{
+  "name"        : "timiki/rpc-client-common",
+  "description" : "Timiki RPC client common",
+  "branches"    : ["master"],
+  "tags"        : ["1.0.0"],
+  "authors"     : [
+    {
+      "name"  : "Netesin N",
+      "email" : "nikita@netesin.ru"
+    }
+  ],
+  "require"     : {
+    "php"                     : ">=5.3",
+    "ext-json"                : "*",
+    "guzzlehttp/guzzle"       : "~6.0",
+    "symfony/http-foundation" : "~2.7"
+  },
+  "autoload"    : {
+    "psr-4" : {
+      "Timiki\\RpcClientCommon\\" : "src/"
+    }
+  }
+}
