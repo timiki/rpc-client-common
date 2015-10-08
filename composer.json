@@ -1,8 +1,13 @@
 {
   "name"        : "timiki/rpc-client-common",
   "description" : "Timiki RPC client common",
-  "branches"    : ["master"],
-  "tags"        : ["1.0.0"],
+  "branches"    : [
+    "master"
+  ],
+  "tags"        : [
+    "1.0.0",
+    "1.1.0"
+  ],
   "authors"     : [
     {
       "name"  : "Netesin N",
