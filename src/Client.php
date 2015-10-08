@@ -4,6 +4,7 @@ namespace Timiki\RpcClientCommon;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Psr7\Request as HttpClientRequest;
+use Timiki\RpcClientCommon\Client\Response;
 
 /**
  * Client class
@@ -47,9 +48,9 @@ class Client
      * Create new client
      *
      * @param null|string|array $address
-     * @param array $options
-     * @param string $type
-     * @param string $locale
+     * @param array             $options
+     * @param string            $type
+     * @param string            $locale
      */
     public function __construct($address = null, array $options = [], $type = 'json', $locale = 'en')
     {
@@ -209,9 +210,9 @@ class Client
      * Call request
      *
      * @param string $method
-     * @param array $params
-     * @param array $extra
-     * @return mixed
+     * @param array  $params
+     * @param array  $extra
+     * @return Response
      */
     public function call($method, array $params = [], array $extra = [])
     {
@@ -227,11 +228,11 @@ class Client
          | Get  handler
          */
 
-        if (class_exists('\\Timiki\\RpcClientCommon\\Client\\Handlers\\' . ucfirst(strtolower($this->getType())))) {
-            $handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\' . ucfirst(strtolower($this->getType()));
+        if (class_exists('\\Timiki\\RpcClientCommon\\Client\\Handlers\\'.ucfirst(strtolower($this->getType())))) {
+            $handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\'.ucfirst(strtolower($this->getType()));
             $handler      = new $handlerClass();
         } else {
-            $handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\' . ucfirst(strtolower($this->defaultType));
+            $handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\'.ucfirst(strtolower($this->defaultType));
             $handler      = new $handlerClass();
         }
 
@@ -251,7 +252,7 @@ class Client
                     }
                 }
                 foreach ($cookiesToHeader as $key => $value) {
-                    $cookiesToHeaderString .= $key . '=' . $value . '; ';
+                    $cookiesToHeaderString .= $key.'='.$value.'; ';
                 }
                 if (!empty($cookiesToHeaderString)) {
                     $request->headers['Cookie'] = $cookiesToHeaderString;
@@ -318,7 +319,9 @@ class Client
         | Process handlers for response
         */
 
-        $response = new \StdClass();
+        $response = new Response();
+        $response->setHttpRequest($httpRequest);
+        $response->setHttpResponse($httpResponse);
 
         $reflection = new  \ReflectionObject($handler);
         if ($reflection->hasMethod('response')) {

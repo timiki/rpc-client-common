@@ -3,6 +3,7 @@
 namespace Timiki\RpcClientCommon\Client\Handlers;
 
 use Timiki\RpcClientCommon\Client\Handler;
+use Timiki\RpcClientCommon\Client\Response;
 
 class Json extends Handler
 {
@@ -27,8 +28,8 @@ class Json extends Handler
      *
      * @return mixed
      */
-    public function response(\GuzzleHttp\Psr7\Response $httpResponse, \StdClass &$response)
+    public function response(\GuzzleHttp\Psr7\Response $httpResponse, Response &$response)
     {
-        $response = json_decode($httpResponse->getBody());
+        $response->setResult(json_decode($httpResponse->getBody()));
     }
 }
