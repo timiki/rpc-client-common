@@ -273,7 +273,7 @@ class Client
         // Ip
         if ($this->getOption('forwardIp', false)) {
             if (class_exists('\Symfony\Component\HttpFoundation\Request')) {
-                $request->headers['Client-Ip'] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->getClientIp();
+                $request->headers['HTTP_CLIENT_IP'] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->getClientIp();
             }
         }
 
