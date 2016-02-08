@@ -19,8 +19,6 @@ class Client
     protected $options = [
         'forwardHeaders' => [], // Forward headers array
         'forwardCookies' => [], // Forward cookies array
-        'forwardIp'      => true, // Forward client ip to server
-        'forwardLocale'  => true, // Forward client locale to server
     ];
 
     /**
@@ -48,9 +46,9 @@ class Client
      * Create new client
      *
      * @param null|string|array $address
-     * @param array             $options
-     * @param string            $type
-     * @param string            $locale
+     * @param array $options
+     * @param string $type
+     * @param string $locale
      */
     public function __construct($address = null, array $options = [], $type = 'json', $locale = 'en')
     {
@@ -210,8 +208,8 @@ class Client
      * Call request
      *
      * @param string $method
-     * @param array  $params
-     * @param array  $extra
+     * @param array $params
+     * @param array $extra
      * @return Response
      */
     public function call($method, array $params = [], array $extra = [])
@@ -240,7 +238,7 @@ class Client
         | Prepare handler
         */
 
-        // Cookies
+        // Forward cookies
         if (class_exists('\Symfony\Component\HttpFoundation\Request')) {
             $cookies = $this->getOption('forwardCookies', []);
             if (is_array($cookies) and !empty($cookies)) {
@@ -260,27 +258,13 @@ class Client
             }
         }
 
-        // Headers
+        // Forward headers
         $headersForward = $this->getOption('forwardHeaders', []);
         if (is_array($headersForward) and !empty($headersForward)) {
             foreach (\Symfony\Component\HttpFoundation\Request::createFromGlobals()->headers->all() as $name => $values) {
                 if (in_array($name, $headersForward)) {
                     $request->headers[$name] = $values;;
                 }
-            }
-        }
-
-        // Ip
-        if ($this->getOption('forwardIp', false)) {
-            if (class_exists('\Symfony\Component\HttpFoundation\Request')) {
-                $request->headers['Client-Ip'] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->getClientIp();
-            }
-        }
-
-        // Locale
-        if ($this->getOption('forwardLocale', false)) {
-            if ($this->getLocale() !== null) {
-                $request->headers['Accept-Language'] = $this->getLocale();
             }
         }
 
