@@ -259,12 +259,11 @@ class Client
         }
 
         // Forward headers
-        $headersForward = $this->getOption('forwardHeaders', []);
-        if (is_array($headersForward) and !empty($headersForward)) {
-            foreach (\Symfony\Component\HttpFoundation\Request::createFromGlobals()->headers->all() as $name => $values) {
-                if (in_array($name, $headersForward)) {
-                    $request->headers[$name] = $values;;
-                }
+        $headersForward = [];
+        foreach ($this->getOption('forwardHeaders', []) as $header) {
+            $request->headers[$header] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->headers->get($header);
+            if (strtolower($header) == 'client-ip') {
+                $request->headers[$header] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->getClientIp();
             }
         }
 
