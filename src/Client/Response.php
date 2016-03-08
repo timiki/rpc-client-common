@@ -2,102 +2,82 @@
 
 namespace Timiki\RpcClientCommon\Client;
 
-use GuzzleHttp\Psr7\Request as HttpRequest;
-use GuzzleHttp\Psr7\Response as HttpResponse;
-
 /**
  * Client response
  */
 class Response
 {
-    /**
-     * Http request
-     *
-     * @var HttpRequest
-     */
-    private $request;
+	/**
+	 * Response info
+	 *
+	 * @var array
+	 */
+	protected $info;
 
-    /**
-     * Http response
-     *
-     * @var HttpResponse
-     */
-    private $response;
+	/**
+	 * Response type
+	 *
+	 * @var string
+	 */
+	private $type;
 
-    /**
-     * Result
-     *
-     * @var mixed
-     */
-    private $result;
+	/**
+	 * Response result
+	 *
+	 * @var mixed
+	 */
+	private $result;
 
-    /**
-     * Set http request.
-     *
-     * @param HttpRequest $request
-     * @return Response
-     */
-    public function setHttpRequest(HttpRequest $request)
-    {
-        $this->request = $request;
+	/**
+	 * Response constructor
+	 *
+	 * @param mixed $result
+	 * @param array $info
+	 * @param string $type
+	 */
+	public function __construct($result = null, array $info = [], $type = 'json')
+	{
+		$this->result = $result;
+		$this->info   = $info;
+		$this->type   = $type;
+	}
 
-        return $this;
-    }
+	/**
+	 * Get info
+	 *
+	 * @param null|string $name
+	 * @return array|null|string
+	 */
+	public function getInfo($name = null)
+	{
+		if ($name === null) {
+			return $this->info;
+		}
+		if (array_key_exists($name, $this->info)) {
+			return $this->info[$name];
+		}
 
-    /**
-     * Get http request.
-     *
-     * @return HttpRequest
-     */
-    public function getHttpRequest()
-    {
-        return $this->request;
-    }
+		return null;
+	}
 
-    /**
-     * Set http response.
-     *
-     * @param HttpResponse $response
-     * @return Response
-     */
-    public function setHttpResponse(HttpResponse $response)
-    {
-        $this->response = $response;
+	/**
+	 * Get type
+	 *
+	 * @return string
+	 */
+	public function getType()
+	{
+		return $this->type;
+	}
 
-        return $this;
-    }
-
-    /**
-     * Get http response.
-     *
-     * @return HttpResponse
-     */
-    public function getHttpResponse()
-    {
-        return $this->response;
-    }
-
-    /**
-     * Set result.
-     *
-     * @param mixed $result
-     * @return Response
-     */
-    public function setResult($result)
-    {
-        $this->result = $result;
-
-        return $this;
-    }
-
-    /**
-     * Get result.
-     *
-     * @return mixed
-     */
-    public function getResult()
-    {
-        return $this->result;
-    }
+	/**
+	 * Get result
+	 *
+	 * @return mixed
+	 */
+	public function getResult()
+	{
+		return $this->result;
+	}
 }
 
