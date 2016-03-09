@@ -32,9 +32,9 @@ class Http
 
 			foreach ($headers as $name => $value) {
 				if (is_array($value)) {
-					$headersForRequest[] = $name . ': ' . implode(";", $value);
+					$headersForRequest[] = $name.': '.implode(";", $value);
 				} else {
-					$headersForRequest[] = $name . ': ' . $value;
+					$headersForRequest[] = $name.': '.$value;
 				}
 			}
 
@@ -46,9 +46,9 @@ class Http
 
 			foreach ($cookies as $name => $value) {
 				if (empty($cookieForRequest)) {
-					$cookieForRequest = $name . '=' . $value;
+					$cookieForRequest = $name.'='.$value;
 				} else {
-					$cookieForRequest .= '; ' . $name . '=' . $value;
+					$cookieForRequest .= '; '.$name.'='.$value;
 				}
 			}
 
@@ -82,10 +82,11 @@ class Http
 			$out = curl_exec($curl);
 
 			if (!curl_errno($curl)) {
-				$response = new Response($out, curl_getinfo($curl));
+				$header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+				$response    = new Response(substr($out, $header_size), substr($out, 0, $header_size), curl_getinfo($curl));
 				curl_close($curl);
 			} else {
-				$response = new Response('', []);
+				$response = new Response('', '', []);
 				curl_close($curl);
 			}
 
@@ -93,26 +94,6 @@ class Http
 		}
 
 		return new Response('', []);
-	}
-
-	/**
-	 * Parses an array of header lines into an associative array of headers.
-	 *
-	 * @param array $lines Header lines array of strings in the following format: "Name: Value"
-	 * @return array
-	 */
-	function headers_from_lines($lines)
-	{
-		$headers = [];
-
-		foreach ($lines as $line) {
-			$parts                      = explode(':', $line, 2);
-			$headers[trim($parts[0])][] = isset($parts[1])
-				? trim($parts[1])
-				: null;
-		}
-
-		return $headers;
 	}
 }
 
