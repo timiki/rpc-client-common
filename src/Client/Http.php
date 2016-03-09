@@ -12,63 +12,87 @@ class Http
 	/**
 	 * Call post request for url
 	 *
-	 * @param $url
-	 * @param $body
-	 * @param array $header
-	 * @param null $cookie
-	 * @param array $extra
+	 * @param string $url Request url
+	 * @param string $body Request body
+	 * @param array $headers Headers array
+	 * @param array $cookies Cookies array
+	 * @param array $extra Extra array
 	 * @return Response
 	 */
-	function post($url, $body, array $header = [], $cookie = null, $extra = [])
+	function post($url, $body, array $headers = [], array $cookies = [], $extra = [])
 	{
 		if ($curl = curl_init()) {
 
-			curl_setopt($curl, CURLOPT_URL, $url);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curl, CURLOPT_POST, true);
-			curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-			curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
-			curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 3600);
-			curl_setopt($curl, CURLOPT_TIMEOUT, 3600);
-			curl_setopt($curl, CURLOPT_HEADER, true);
+			/**
+			 * Prepare headers
+			 */
 
-			if ($cookie) {
-				curl_setopt($curl, CURLOPT_COOKIE, $cookie);
+			$headersForRequest = [];
+			unset($headers['Cookie']);
+
+			foreach ($headers as $name => $value) {
+				if (is_array($value)) {
+					$headersForRequest[] = $name . ': ' . implode(";", $value);
+				} else {
+					$headersForRequest[] = $name . ': ' . $value;
+				}
 			}
 
-			if (count($header) > 0) {
-				curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+			/**
+			 * Prepare cookie
+			 */
+
+			$cookieForRequest = '';
+
+			foreach ($cookies as $name => $value) {
+				if (empty($cookieForRequest)) {
+					$cookieForRequest = $name . '=' . $value;
+				} else {
+					$cookieForRequest .= '; ' . $name . '=' . $value;
+				}
 			}
 
+			$curlOptions = [
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_POST           => true,
+				CURLOPT_SSL_VERIFYHOST => false,
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_MAXREDIRS      => 10,
+				CURLOPT_CONNECTTIMEOUT => 3600,
+				CURLOPT_TIMEOUT        => 3600,
+				CURLOPT_HEADER         => true,
+			];
+
+			if (array_key_exists('curl', $extra)) {
+				$curlOptions = array_replace($curlOptions, $extra['curl']);
+			}
+
+			$curlOptions[CURLOPT_URL]        = $url;
+			$curlOptions[CURLOPT_POSTFIELDS] = $body;
+
+			if ($cookieForRequest) {
+				$curlOptions[CURLOPT_COOKIE] = $cookieForRequest;
+			}
+			if ($headersForRequest) {
+				$curlOptions[CURLOPT_HTTPHEADER] = $headersForRequest;
+			}
+
+			curl_setopt_array($curl, $curlOptions);
 			$out = curl_exec($curl);
 
 			if (!curl_errno($curl)) {
-
-				$response = new Response($out);
-
-//				$info         = curl_getinfo($curl);
-//				$headers_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-//				$headers_line = substr($out, 0, $headers_size);
-//				$body         = substr($out, $headers_size);
-//				$headers      = [];
-//
-//				foreach (explode(PHP_EOL, $headers_line) as $value) {
-//					if (!empty(trim($value))) {
-//						$headers[] = $value;
-//					}
-//				}
-//
-//				$startLine = explode(' ', array_shift($headers), 3);
-//				$headers   = $this->headers_from_lines($headers);
-
-
+				$response = new Response($out, curl_getinfo($curl));
+				curl_close($curl);
+			} else {
+				$response = new Response('', []);
+				curl_close($curl);
 			}
 
-			curl_close($curl);
+			return $response;
 		}
+
+		return new Response('', []);
 	}
 
 	/**

@@ -2,18 +2,13 @@
 
 namespace Timiki\RpcClientCommon\Client;
 
+use Timiki\RpcClientCommon\Client\Http\Response as HttpResponse;
+
 /**
  * Client response
  */
 class Response
 {
-	/**
-	 * Response info
-	 *
-	 * @var array
-	 */
-	protected $info;
-
 	/**
 	 * Response type
 	 *
@@ -29,35 +24,34 @@ class Response
 	private $result;
 
 	/**
+	 * Response
+	 *
+	 * @var HttpResponse
+	 */
+	private $httpResponse;
+
+	/**
 	 * Response constructor
 	 *
 	 * @param mixed $result
-	 * @param array $info
 	 * @param string $type
+	 * @param HttpResponse $httpResponse
 	 */
-	public function __construct($result = null, array $info = [], $type = 'json')
+	public function __construct($result = null, $type = 'json', HttpResponse $httpResponse)
 	{
-		$this->result = $result;
-		$this->info   = $info;
-		$this->type   = $type;
+		$this->result       = $result;
+		$this->type         = $type;
+		$this->httpResponse = $httpResponse;
 	}
 
 	/**
-	 * Get info
+	 * Get http response object
 	 *
-	 * @param null|string $name
-	 * @return array|null|string
+	 * @return HttpResponse
 	 */
-	public function getInfo($name = null)
+	public function getHttpResponse()
 	{
-		if ($name === null) {
-			return $this->info;
-		}
-		if (array_key_exists($name, $this->info)) {
-			return $this->info[$name];
-		}
-
-		return null;
+		return $this->httpResponse;
 	}
 
 	/**

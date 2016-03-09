@@ -50,13 +50,32 @@ class Response
 	protected $body;
 
 	/**
+	 * Raw message
+	 *
+	 * @var string
+	 */
+	protected $message;
+
+	/**
+	 * Info
+	 *
+	 * @var array
+	 */
+	protected $info = [];
+
+	/**
 	 * Http constructor
 	 *
-	 * @param $message
+	 * @param string $message Raw http message
+	 * @param array $info Info for request
 	 */
-	public function __construct($message)
+	public function __construct($message, array $info = [])
 	{
-		$this->parseMessage($message);
+		$this->message = $message;
+		$this->info    = $info;
+		if (!empty(trim($message))) {
+			$this->parseMessage($message);
+		}
 	}
 
 	/**
@@ -93,11 +112,11 @@ class Response
 				$key   = trim($parts[0]);
 				$value = isset($parts[1]) ? trim($parts[1]) : '';
 				if (!isset($headers[$key])) {
-					$headers[$key] = $value;
-				} elseif (!is_array($headers[$key])) {
-					$headers[$key] = [$headers[$key], $value];
+					$headers[strtolower($key)] = [$value];
+				} elseif (!is_array($headers[strtolower($key)])) {
+					$headers[strtolower($key)] = [$headers[strtolower($key)], $value];
 				} else {
-					$headers[$key][] = $value;
+					$headers[strtolower($key)][] = $value;
 				}
 			}
 		}
@@ -116,6 +135,61 @@ class Response
 		$this->headers       = $parts['headers'];
 		$this->body          = $parts['body'];
 		$this->reason_phrase = isset($parts['start_line'][2]) ? $parts['start_line'][2] : '';
+	}
+
+	/**
+	 * Gets headers array
+	 *
+	 * @return array
+	 */
+	public function getHeaders()
+	{
+		return $this->headers;
+	}
+
+	/**
+	 * Get header by name
+	 *
+	 * @param string $name Header name
+	 * @param null|string|array $default Default header values if header not set
+	 * @return array|null
+	 */
+	public function getHeader($name, $default = null)
+	{
+		if (array_key_exists(strtolower($name), $this->headers)) {
+			return $this->headers[strtolower($name)];
+		}
+		return $default;
+	}
+
+	/**
+	 * Get raw message
+	 *
+	 * @return string|null
+	 */
+	public function getRaw()
+	{
+		return $this->message;
+	}
+
+	/**
+	 * Get body
+	 *
+	 * @return string
+	 */
+	public function getBody()
+	{
+		return $this->body;
+	}
+
+	/**
+	 * Get info
+	 *
+	 * @return array
+	 */
+	public function getInfo()
+	{
+		return $this->info;
 	}
 }
 

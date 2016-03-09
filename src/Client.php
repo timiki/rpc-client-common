@@ -11,22 +11,11 @@ use Timiki\RpcClientCommon\Client\HandlerInterface;
 class Client
 {
 	/**
-	 * Server options
-	 *
-	 * @var array
-	 */
-	protected $options = [
-		'forwardHeaders' => [], // Forward headers array
-		'forwardCookies' => [], // Forward cookies array
-	];
-
-	/**
 	 * Client type
 	 *
 	 * @var array
 	 */
 	protected $type = 'json';
-	protected $defaultType = 'json';
 
 	/**
 	 * Server address
@@ -34,6 +23,20 @@ class Client
 	 * @var array
 	 */
 	protected $address = [];
+
+	/**
+	 * Client default headers
+	 *
+	 * @var array
+	 */
+	protected $headers = [];
+
+	/**
+	 * Client default cookies
+	 *
+	 * @var array
+	 */
+	protected $cookies = [];
 
 	/**
 	 * Client locale
@@ -45,30 +48,20 @@ class Client
 	/**
 	 * Create new client
 	 *
-	 * @param null|string|array $address
-	 * @param array $options
-	 * @param string $type
-	 * @param string $locale
+	 * @param null|string|array $address RPC address string or array
+	 * @param string $type RPC client type
+	 * @param array $headers Headers array
+	 * @param array $cookies Cookies array
+	 * @param string $locale Locale name
 	 */
-	public function __construct($address = null, array $options = [], $type = 'json', $locale = 'en')
+	public function __construct($address = null, $type = 'json', array $headers = [], array $cookies = [], $locale = 'en')
 	{
+		$this->setHeader('User-Agent', 'RPC client');
 		$this->addAddress($address);
-		$this->setOptions($options);
 		$this->setLocale($locale);
-		$this->setType($type);
-	}
-
-	/**
-	 * Set type
-	 *
-	 * @param $type
-	 * @return $this
-	 */
-	public function setType($type)
-	{
+		$this->setHeaders($headers);
+		$this->setCookies($cookies);
 		$this->type = $type;
-
-		return $this;
 	}
 
 	/**
@@ -82,6 +75,95 @@ class Client
 	}
 
 	/**
+	 * Set client header
+	 *
+	 * @param string $name Header name
+	 * @param string|array $value Header value
+	 * @param bool $replace
+	 * @return $this
+	 */
+	public function setHeader($name, $value, $replace = false)
+	{
+		if (!is_array($value)) {
+			$value = [$value];
+		}
+		if (array_key_exists($name, $this->headers)) {
+			if ($replace) {
+				$this->headers[$name] = $value;
+			} else {
+				$this->headers[$name] = array_merge($this->headers[$name], $value);
+			}
+		} else {
+			$this->headers[$name] = $value;
+		}
+		return $this;
+	}
+
+	/**
+	 * Set client headers by array
+	 *
+	 * @param array $headers Headers array
+	 * @return $this
+	 */
+	public function setHeaders(array $headers)
+	{
+		foreach ($headers as $name => $value) {
+			$this->setHeader($name, $value);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get headers
+	 *
+	 * @return array
+	 */
+	public function getHeaders()
+	{
+		return $this->headers;
+	}
+
+	/**
+	 * Set client cookie
+	 *
+	 * @param string $name Cookie name
+	 * @param string $value Cookie value
+	 * @return $this
+	 */
+	public function setCookie($name, $value)
+	{
+		$this->cookies[$name] = $value;
+
+		return $this;
+	}
+
+	/**
+	 * Set client cookies by array
+	 *
+	 * @param array $cookies Cookies
+	 * @return $this
+	 */
+	public function setCookies(array $cookies)
+	{
+		foreach ($cookies as $name => $value) {
+			$this->setCookie($name, $value);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get client cookies
+	 *
+	 * @return array
+	 */
+	public function getCookies()
+	{
+		return $this->cookies;
+	}
+
+	/**
 	 * Set client locale
 	 *
 	 * @param $locale
@@ -90,7 +172,7 @@ class Client
 	public function setLocale($locale)
 	{
 		$this->locale = $locale;
-
+		$this->setHeader('Accept-Language', $locale);
 		return $this;
 	}
 
@@ -105,58 +187,9 @@ class Client
 	}
 
 	/**
-	 * Set option value
-	 *
-	 * @param $option
-	 * @param $value
-	 * @return $this
-	 */
-	public function setOption($option, $value)
-	{
-		if (array_key_exists($option, $this->options)) {
-			$this->options[$option] = $value;
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Set multi options values
-	 *
-	 * @param array $array
-	 * @return string|null
-	 */
-	public function setOptions($array)
-	{
-		if (is_array($array)) {
-			foreach ($array as $option => $value) {
-				$this->setOption($option, $value);
-			}
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Get option value
-	 *
-	 * @param      $option
-	 * @param null $default
-	 * @return array
-	 */
-	public function getOption($option, $default = null)
-	{
-		if (array_key_exists($option, $this->options)) {
-			return $this->options[$option];
-		}
-
-		return $default;
-	}
-
-	/**
 	 * Add server address
 	 *
-	 * @param      $address
+	 * @param string|array $address
 	 * @param bool $append
 	 * @return $this
 	 */
@@ -219,11 +252,11 @@ class Client
 		 * @var HandlerInterface $handler
 		 */
 
-		if (class_exists('\\Timiki\\RpcClientCommon\\Client\\Handlers\\'.ucfirst(strtolower($this->getType())))) {
-			$handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\'.ucfirst(strtolower($this->getType()));
+		if (class_exists('\\Timiki\\RpcClientCommon\\Client\\Handlers\\' . ucfirst(strtolower($this->getType())))) {
+			$handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\' . ucfirst(strtolower($this->getType()));
 			$handler      = new $handlerClass();
 		} else {
-			$handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\'.ucfirst(strtolower($this->defaultType));
+			$handlerClass = '\\Timiki\\RpcClientCommon\\Client\\Handlers\\Json';
 			$handler      = new $handlerClass();
 		}
 
@@ -233,45 +266,42 @@ class Client
 		 * Prepare headers
 		 */
 
-		$headers = [];
-
+		$headers     = $this->getHeaders();
+		$callHeaders = [];
 		if (array_key_exists('headers', $extra)) {
-			$headers = (array)$extra['headers'];
+			$callHeaders = (array)$extra['headers'];
 			unset($extra['headers']);
 		}
 
-		if (class_exists('\Symfony\Component\HttpFoundation\Request')) {
-			foreach ($this->getOption('forwardHeaders', []) as $header) {
-				$headers[$header] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->headers->get($header);
-				if (strtolower($header) == 'client-ip') {
-					$headers[$header] = \Symfony\Component\HttpFoundation\Request::createFromGlobals()->getClientIp();
-				}
+		foreach ($callHeaders as $name => $value) {
+			if (!is_array($value)) {
+				$value = [$value];
+			}
+			if (array_key_exists($name, $headers)) {
+				$headers[$name] = array_merge($headers, $value);
+			} else {
+				$headers[$name] = $value;
 			}
 		}
 
-		if (class_exists('\Symfony\Component\HttpFoundation\Request')) {
-			$cookies = $this->getOption('forwardCookies', []);
-			if (is_array($cookies) and !empty($cookies)) {
-				$cookiesToHeader       = [];
-				$cookiesToHeaderString = '';
-				foreach (\Symfony\Component\HttpFoundation\Request::createFromGlobals()->cookies->all() as $name => $values) {
-					if (in_array($name, $cookies)) {
-						$cookiesToHeader[$name] = $values;
-					}
-				}
-				foreach ($cookiesToHeader as $key => $value) {
-					$cookiesToHeaderString .= $key.'='.$value.'; ';
-				}
-				if (!empty($cookiesToHeaderString)) {
-					$headers['Cookie'] = $cookiesToHeaderString;
-				}
-			}
+		/**
+		 * Prepare cookies
+		 */
+		$cookies     = $this->getCookies();
+		$callCookies = [];
+		if (array_key_exists('cookies', $extra)) {
+			$callCookies = (array)$extra['cookies'];
+			unset($extra['cookies']);
+		}
+
+		foreach ($callCookies as $name => $value) {
+			$cookies[$name] = $value;
 		}
 
 		/**
 		 * Call handler
 		 */
 
-		return $handler->call($method, $params, $extra, $headers);
+		return $handler->call($method, $params, $extra, $headers, $cookies);
 	}
 }

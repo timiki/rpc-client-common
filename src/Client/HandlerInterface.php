@@ -25,22 +25,14 @@ interface HandlerInterface
 	public function &getClient();
 
 	/**
-	 * Get client option value
-	 *
-	 * @param string $option Option name
-	 * @param null $default Option default value
-	 * @return mixed
-	 */
-	public function getOption($option, $default = null);
-
-	/**
 	 * Call method
 	 *
 	 * @param string $method Method name
 	 * @param array $params Method params
 	 * @param array $extra Methods extra params
 	 * @param array $headers Headers for request
+	 * @param array $cookies Cookies for request
 	 * @return Response
 	 */
-	public function call($method, array $params = [], array $extra = [], array $headers = []);
+	public function call($method, array $params = [], array $extra = [], array $headers = [], array $cookies = []);
 }
