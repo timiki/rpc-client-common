@@ -2,10 +2,12 @@
 
 namespace Timiki\RpcClientCommon\Client;
 
+use Timiki\RpcClientCommon\Client\Http\Response;
+
 /**
  * Simple cURL client
  */
-class Curl
+class Http
 {
 	/**
 	 * Call post request for url
@@ -14,9 +16,10 @@ class Curl
 	 * @param $body
 	 * @param array $header
 	 * @param null $cookie
+	 * @param array $extra
 	 * @return Response
 	 */
-	function post($url, $body, array $header = [], $cookie = null)
+	function post($url, $body, array $header = [], $cookie = null, $extra = [])
 	{
 		if ($curl = curl_init()) {
 
@@ -44,20 +47,22 @@ class Curl
 
 			if (!curl_errno($curl)) {
 
-				$info         = curl_getinfo($curl);
-				$headers_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-				$headers_line = substr($out, 0, $headers_size);
-				$body         = substr($out, $headers_size);
-				$headers      = [];
+				$response = new Response($out);
 
-				foreach (explode(PHP_EOL, $headers_line) as $value) {
-					if (!empty(trim($value))) {
-						$headers[] = $value;
-					}
-				}
-
-				$startLine = explode(' ', array_shift($headers), 3);
-				$headers   = $this->headers_from_lines($headers);
+//				$info         = curl_getinfo($curl);
+//				$headers_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+//				$headers_line = substr($out, 0, $headers_size);
+//				$body         = substr($out, $headers_size);
+//				$headers      = [];
+//
+//				foreach (explode(PHP_EOL, $headers_line) as $value) {
+//					if (!empty(trim($value))) {
+//						$headers[] = $value;
+//					}
+//				}
+//
+//				$startLine = explode(' ', array_shift($headers), 3);
+//				$headers   = $this->headers_from_lines($headers);
 
 
 			}

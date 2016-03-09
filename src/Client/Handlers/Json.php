@@ -4,7 +4,7 @@ namespace Timiki\RpcClientCommon\Client\Handlers;
 
 use Timiki\RpcClientCommon\Client\HandlerAbstract;
 use Timiki\RpcClientCommon\Client\Response;
-use Timiki\RpcClientCommon\Client\Curl;
+use Timiki\RpcClientCommon\Client\Http;
 
 class Json extends HandlerAbstract
 {
@@ -53,7 +53,7 @@ class Json extends HandlerAbstract
 		 * Prepare cURL
 		 */
 
-		$curl = new Curl();
+		$curl = new Http();
 		$curl->post($this->getClient()->getAddressForRequest(),$bodyForRequest, $headersForRequest, $cookieForRequest);
 
 
